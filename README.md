@@ -262,3 +262,8 @@ serverless remove
 ```
 
 Isso deleta todos os recursos criados (Lambda, API Gateway, DynamoDB, SQS, CloudWatch).
+
+### vídeo
+
+https://github.com/user-attachments/assets/c7d01066-d782-4bb9-b78d-442c247825ca
+
