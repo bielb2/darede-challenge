@@ -6,7 +6,7 @@ module.exports.handler = async (event) => {
 
     console.log(`Processando pagamento do pedido: ${orderId}`);
 
-    // mock: 10s para simular o tempo de processamento do pagamento
+    // mock: 5s para simular o tempo de processamento do pagamento
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     await updateOrderStatus(orderId, 'PROCESSED');

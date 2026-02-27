@@ -22,7 +22,7 @@ Lambda: CreateOrder
               ▼
         Lambda: ProcessPayment
           ├── Consome a mensagem do SQS
-          ├── Aguarda 4 segundos (simula integração externa)
+          ├── Aguarda 5 segundos (simula integração externa)
           └── Atualiza o pedido no DynamoDB  (status: PROCESSED)
 ```
 
