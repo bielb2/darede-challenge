@@ -1,0 +1,263 @@
+{
+  "info": {
+    "name": "Serverless Order Processor",
+    "description": "Collection para testar o microsserviço de pedidos. Execute na ordem: 1 → 2 → 3 → 4 para ver o fluxo completo PENDING → PROCESSED.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://15cx2x8fw7.execute-api.us-east-1.amazonaws.com/dev"
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Fluxo Completo",
+      "item": [
+        {
+          "name": "1. Criar Pedido (POST)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.orderId) {",
+                  "  pm.collectionVariables.set('orderId', response.orderId);",
+                  "}",
+                  "",
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Status PENDING', () => pm.expect(response.status).to.eql('PENDING'));",
+                  "pm.test('Tem orderId', () => pm.expect(response.orderId).to.not.be.undefined);",
+                  "pm.test('Total correto', () => pm.expect(response.total).to.eql(99.8));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"customer-123\",\n  \"items\": [\n    {\n      \"productId\": \"prod-001\",\n      \"name\": \"Produto Exemplo\",\n      \"quantity\": 2,\n      \"price\": 49.90\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "2. Buscar Pedido - PENDING (GET imediato)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Pedido encontrado', () => pm.expect(response.orderId).to.eql(pm.collectionVariables.get('orderId')));",
+                  "pm.test('Status PENDING', () => pm.expect(response.status).to.eql('PENDING'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{orderId}}"]
+            }
+          }
+        },
+        {
+          "name": "3. Buscar Pedido - PROCESSED (GET após ~5s)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Status PROCESSED', () => pm.expect(response.status).to.eql('PROCESSED'));",
+                  "pm.test('Tem updatedAt', () => pm.expect(response.updatedAt).to.not.be.undefined);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/{{orderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "{{orderId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validações de Erro",
+      "item": [
+        {
+          "name": "GET - Pedido não encontrado (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/orders/id-inexistente",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders", "id-inexistente"]
+            }
+          }
+        },
+        {
+          "name": "POST - Sem customerId (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"prod-001\",\n      \"name\": \"Produto\",\n      \"quantity\": 1,\n      \"price\": 10.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "POST - Items vazio (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"customer-789\",\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "POST - Quantity inválida (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"customer-789\",\n  \"items\": [\n    {\n      \"productId\": \"prod-001\",\n      \"name\": \"Produto\",\n      \"quantity\": 0,\n      \"price\": 10.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "POST - Múltiplos Itens (201)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"customer-456\",\n  \"items\": [\n    {\n      \"productId\": \"prod-001\",\n      \"name\": \"Camiseta\",\n      \"quantity\": 3,\n      \"price\": 29.90\n    },\n    {\n      \"productId\": \"prod-002\",\n      \"name\": \"Calça Jeans\",\n      \"quantity\": 1,\n      \"price\": 149.90\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/orders",
+              "host": ["{{baseUrl}}"],
+              "path": ["orders"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

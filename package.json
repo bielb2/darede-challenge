@@ -1,0 +1,24 @@
+{
+  "name": "serverless-order-processor",
+  "version": "1.0.0",
+  "description": "Microsserviço serverless para registro e processamento de pedidos",
+  "main": "src/handlers/createOrder.js",
+  "scripts": {
+    "dev": "serverless offline start",
+    "deploy": "serverless deploy",
+    "remove": "serverless remove",
+    "test": "jest --verbose",
+    "test:unit": "jest tests/unit --verbose",
+    "test:integration": "jest tests/integration --verbose",
+    "test:coverage": "jest --coverage --verbose"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1692.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "aws-sdk-mock": "^6.2.0",
+    "serverless-offline": "^14.4.0"
+  }
+}
